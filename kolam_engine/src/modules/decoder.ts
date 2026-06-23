@@ -1,7 +1,7 @@
 // decoder.ts — live trace while drawing, looping animation on commit
 
 import { type GridConfig } from './schema'
-import { gridOrigin, latticeToCanvas } from './canvas'
+import { gridOrigin, latticeToCanvas, getSpacing } from './canvas'
 import { chalkStroke } from './renderer'
 import { theme } from '../styles/theme'
 
@@ -49,11 +49,13 @@ export function decodeLive(
   scope.activate()
   const layer = new scope.Layer({ name: 'decode-anim' })
   layer.activate()
-  const origin = gridOrigin(cfg, canvas.clientWidth, canvas.clientHeight)
+  const spacing = getSpacing(cfg, canvas.clientWidth, canvas.clientHeight)
+  const rcfg = { ...cfg, spacing }
+  const origin = gridOrigin(rcfg, canvas.clientWidth, canvas.clientHeight)
 
   for (const stroke of seq) {
     if (stroke.length < 2) continue
-    const pts = buildSplinePts(scope, toCoords(scope, stroke, cfg, origin))
+    const pts = buildSplinePts(scope, toCoords(scope, stroke, rcfg, origin))
     if (pts.length >= 2) chalkStroke(scope, pts, theme.chalk.guide, 3)
   }
 
@@ -93,8 +95,10 @@ export function decodeLoop(
     pos++ // skip \n after line
   }
 
-  const origin = gridOrigin(cfg, canvas.clientWidth, canvas.clientHeight)
-  const SPEED = 1, TRAIL = 60
+  const spacing = getSpacing(cfg, canvas.clientWidth, canvas.clientHeight)
+  const rcfg = { ...cfg, spacing }
+  const origin = gridOrigin(rcfg, canvas.clientWidth, canvas.clientHeight)
+  const TRAIL = 60
 
   // Build per-stroke spline pts + token mappings
   type StrokeData = { pts: any[]; tokenPtIdx: number[] }
@@ -102,17 +106,12 @@ export function decodeLoop(
   let tokenOffset = 0
   for (const stroke of seq) {
     if (stroke.length < 2) { tokenOffset += stroke.length; continue }
-    const coords = toCoords(scope, stroke, cfg, origin)
+    const coords = toCoords(scope, stroke, rcfg, origin)
     const first = stroke[0], last = stroke[stroke.length - 1]
     const closed = first[0] === last[0] && first[1] === last[1]
     const pts = buildSplinePts(scope, coords, closed)
-    const tokenPtIdx = stroke.map((_, i) =>
-      Math.floor((i / (stroke.length - 1)) * (pts.length - 1))
-    ).map(pi => pi + tokenOffset) // offset into allOffsets
-    // store absolute token indices
     const absTokenPtIdx = stroke.map((_, i) => ({
       ptIdx: Math.floor((i / (stroke.length - 1)) * (pts.length - 1)),
-      tokIdx: tokenOffset + i,
     }))
     strokes.push({ pts, tokenPtIdx: absTokenPtIdx.map(x => x.ptIdx) })
     tokenOffset += stroke.length
@@ -150,7 +149,7 @@ export function decodeLoop(
     const baseTokenIdx = seq.slice(0, si).reduce((s, st) => s + st.length, 0)
     const localTokIdx = sd.tokenPtIdx.findLastIndex((pi: number) => pi <= head)
     const absTokIdx = baseTokenIdx + (localTokIdx >= 0 ? localTokIdx : 0)
-    if (allOffsets[absTokIdx]) {
+    if (allOffsets[absTokIdx] && document.activeElement !== seqEl) {
       const { start, end } = allOffsets[absTokIdx]
       seqEl.focus()
       seqEl.setSelectionRange(start, end)

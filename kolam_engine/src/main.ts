@@ -1,9 +1,10 @@
 import './styles/main.css'
 import paper from 'paper'
 import { type GridConfig } from './modules/schema'
-import { HTML, sizeCanvas, setupResizeObserver, drawGrid } from './modules/canvas'
-import { initDraw, resetDraw } from './modules/draw'
+import { HTML, sizeCanvas, drawGrid } from './modules/canvas'
+import { initDraw, resetDraw, renderSeqOnEnc } from './modules/draw'
 import { decodeLive, decodeLoop, stopDecode } from './modules/decoder'
+import { parseSeq } from './modules/seq-parser'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = HTML
 
@@ -16,11 +17,14 @@ const decScope = new paper.PaperScope()
 let cfg: GridConfig = { rows: 3, cols: 3, spacing: 40 }
 let initialized = false
 
-function redraw() {
+function resizeCanvases() {
   sizeCanvas(encCanvas)
   sizeCanvas(decCanvas)
   encScope.view.viewSize = new encScope.Size(encCanvas.clientWidth, encCanvas.clientHeight)
   decScope.view.viewSize = new decScope.Size(decCanvas.clientWidth, decCanvas.clientHeight)
+}
+
+function redraw() {
   drawGrid(encScope, encCanvas, cfg, 'draw')
   drawGrid(decScope, decCanvas, cfg, 'decode')
   stopDecode()
@@ -28,7 +32,6 @@ function redraw() {
   seqEl.value = ''
 }
 
-// Use ResizeObserver for both initial setup and subsequent resizes
 const ro = new ResizeObserver(() => {
   if (!initialized) {
     initialized = true
@@ -40,6 +43,7 @@ const ro = new ResizeObserver(() => {
       (seq) => decodeLoop(decScope, decCanvas, cfg, seq, seqEl),
     )
   }
+  resizeCanvases()
   redraw()
 })
 ro.observe(document.getElementById('boards')!)
@@ -51,4 +55,25 @@ document.getElementById('inp-rows')!.addEventListener('input', (e) => {
 document.getElementById('inp-cols')!.addEventListener('input', (e) => {
   const v = parseInt((e.target as HTMLInputElement).value)
   if (v > 0) { cfg = { ...cfg, cols: v }; redraw() }
+})
+
+seqEl.addEventListener('input', () => {
+  const seq = parseSeq(seqEl.value)
+  renderSeqOnEnc(seq)
+  stopDecode()
+  if (seq.length > 0) decodeLoop(decScope, decCanvas, cfg, seq, seqEl)
+})
+
+seqEl.addEventListener('focus', () => stopDecode())
+seqEl.addEventListener('blur', () => {
+  const seq = parseSeq(seqEl.value)
+  if (seq.length > 0) decodeLoop(decScope, decCanvas, cfg, seq, seqEl)
+})
+
+document.getElementById('btn-copy')!.addEventListener('click', () => {
+  navigator.clipboard.writeText(seqEl.value)
+  const btn = document.getElementById('btn-copy')!
+  btn.textContent = 'Copied!'
+  btn.classList.add('copied')
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied') }, 1500)
 })

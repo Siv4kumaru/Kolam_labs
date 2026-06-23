@@ -1,7 +1,7 @@
 // draw.ts — mousedown to start drag, mousemove snaps, mouseup commits spline
 
 import { type LatticePoint, type GridConfig, isAnchor } from './schema'
-import { buildLattice, gridOrigin, latticeToCanvas } from './canvas'
+import { buildLattice, gridOrigin, latticeToCanvas, getSpacing } from './canvas'
 import { chalkStroke } from './renderer'
 import { theme } from '../styles/theme'
 
@@ -37,6 +37,13 @@ export function resetDraw(cfg: GridConfig) {
   renderAll()
   _onLive?.([])
   _onCommit?.([])
+}
+
+/** Render externally-provided strokes onto the enc canvas (from seq textarea edit) */
+export function renderSeqOnEnc(seq: [number, number][][]) {
+  finished = seq.map(stroke => stroke.map(([li, lj]) => ({ li, lj })))
+  currentPts = []; drawing = false
+  renderAll()
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────
@@ -79,19 +86,21 @@ function renderAll(hover?: LatticePoint) {
   const layer = new _scope.Layer({ name: 'draw' })
   layer.activate()
 
-  const origin = gridOrigin(_cfg, _canvas.clientWidth, _canvas.clientHeight)
+  const spacing = getSpacing(_cfg, _canvas.clientWidth, _canvas.clientHeight)
+  const rcfg = { ..._cfg, spacing }
+  const origin = gridOrigin(rcfg, _canvas.clientWidth, _canvas.clientHeight)
 
-  for (const pts of finished) renderSpline(pts, origin)
-  if (currentPts.length >= 2) renderSpline(currentPts, origin)
+  for (const pts of finished) renderSpline(pts, origin, rcfg)
+  if (currentPts.length >= 2) renderSpline(currentPts, origin, rcfg)
 
   if (hover && !drawing) {
-    const hc = new _scope.Path.Circle(lp(hover, origin), 8)
+    const hc = new _scope.Path.Circle(lp(hover, origin, rcfg), 8)
     hc.fillColor = new _scope.Color(0.4, 1, 0.4, 0.45)
   }
 }
 
-function renderSpline(pts: LatticePoint[], origin: { x: number; y: number }) {
-  const coords = pts.map(p => lp(p, origin))
+function renderSpline(pts: LatticePoint[], origin: { x: number; y: number }, rcfg: GridConfig) {
+  const coords = pts.map(p => lp(p, origin, rcfg))
   const path = new _scope.Path()
   path.moveTo(coords[0])
   for (let i = 1; i < coords.length - 1; i++)
@@ -107,7 +116,7 @@ function renderSpline(pts: LatticePoint[], origin: { x: number; y: number }) {
     chalkStroke(_scope, sampled, theme.chalk.main, 3)
 
   for (const p of pts) {
-    const dot = new _scope.Path.Circle(lp(p, origin), isAnchor(p.li, p.lj) ? 4 : 2.5)
+    const dot = new _scope.Path.Circle(lp(p, origin, rcfg), isAnchor(p.li, p.lj) ? 4 : 2.5)
     dot.fillColor = new _scope.Color(isAnchor(p.li, p.lj) ? theme.chalk.highlight : theme.chalk.guide)
     dot.opacity = 0.85
   }
@@ -115,8 +124,8 @@ function renderSpline(pts: LatticePoint[], origin: { x: number; y: number }) {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function lp(p: LatticePoint, origin: { x: number; y: number }) {
-  const { x, y } = latticeToCanvas(p.li, p.lj, _cfg, origin)
+function lp(p: LatticePoint, origin: { x: number; y: number }, rcfg: GridConfig) {
+  const { x, y } = latticeToCanvas(p.li, p.lj, rcfg, origin)
   return new _scope.Point(x, y)
 }
 
@@ -130,10 +139,12 @@ function evtPt(e: MouseEvent): { x: number; y: number } {
 }
 
 function nearest(pt: { x: number; y: number }): LatticePoint | null {
-  const origin = gridOrigin(_cfg, _canvas.clientWidth, _canvas.clientHeight)
+  const spacing = getSpacing(_cfg, _canvas.clientWidth, _canvas.clientHeight)
+  const rcfg = { ..._cfg, spacing }
+  const origin = gridOrigin(rcfg, _canvas.clientWidth, _canvas.clientHeight)
   let best: LatticePoint | null = null, bestD = SNAP_RADIUS
   for (const p of buildLattice(_cfg)) {
-    const { x, y } = latticeToCanvas(p.li, p.lj, _cfg, origin)
+    const { x, y } = latticeToCanvas(p.li, p.lj, rcfg, origin)
     let d = Math.hypot(pt.x - x, pt.y - y)
     if (!isAnchor(p.li, p.lj)) d *= 1.4
     if (d < bestD) { bestD = d; best = p }

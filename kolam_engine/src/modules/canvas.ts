@@ -44,6 +44,14 @@ export function gridOrigin(cfg: GridConfig, canvasW: number, canvasH: number) {
 
 // ── Board rendering ────────────────────────────────────────────────────────
 
+export function getSpacing(cfg: GridConfig, canvasW: number, canvasH: number): number {
+  const { rows, cols } = latticeSize(cfg)
+  return Math.floor(Math.min(
+    (canvasW * 0.8) / (cols - 1),
+    (canvasH * 0.8) / (rows - 1),
+  ))
+}
+
 export function drawGrid(scope: any, canvas: HTMLCanvasElement, cfg: GridConfig, label: string) {
   scope.activate()
   scope.project.clear()
@@ -51,9 +59,16 @@ export function drawGrid(scope: any, canvas: HTMLCanvasElement, cfg: GridConfig,
   const { width, height } = scope.view.size
   drawBoardTexture(scope, width, height)
 
-  const origin = gridOrigin(cfg, canvas.clientWidth, canvas.clientHeight)
+  // Auto-fit spacing so grid fills ~80% of the smaller canvas dimension
+  const { rows, cols } = latticeSize(cfg)
+  const spacing = Math.floor(Math.min(
+    (canvas.clientWidth * 0.8) / (cols - 1),
+    (canvas.clientHeight * 0.8) / (rows - 1),
+  ))
+
+  const origin = gridOrigin({ ...cfg, spacing }, canvas.clientWidth, canvas.clientHeight)
   for (const { li, lj } of buildLattice(cfg)) {
-    const { x, y } = latticeToCanvas(li, lj, cfg, origin)
+    const { x, y } = latticeToCanvas(li, lj, { ...cfg, spacing }, origin)
     new scope.Path.Circle({
       center: new scope.Point(x, y),
       radius: isAnchor(li, lj) ? 5 : 1.5,
@@ -122,12 +137,15 @@ export const HTML = `
         <canvas id="enc-canvas"></canvas>
         <div class="flow-arrow">${ARROW_SVG}</div>
         <div class="seq-panel">
+          <div class="seq-top">
+            <div class="seq-label">Sequence</div>
+            <button id="btn-copy">Copy</button>
+          </div>
           <div class="grid-input">
             <label>N <input id="inp-rows" type="number" value="3" min="1" max="12" /></label>
             <label>M <input id="inp-cols" type="number" value="3" min="1" max="12" /></label>
           </div>
-          <div class="seq-label">Sequence</div>
-          <textarea id="seq" spellcheck="false" readonly></textarea>
+          <textarea id="seq" spellcheck="false"></textarea>
         </div>
         <div class="flow-arrow">${ARROW_SVG}</div>
         <canvas id="dec-canvas"></canvas>

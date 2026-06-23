@@ -121,6 +121,12 @@ body {
   color: var(--muted);
 }
 
+.seq-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 #seq {
   flex: 1;
   background: rgba(0,0,0,0.3);
@@ -133,3 +139,17 @@ body {
   resize: none;
   min-height: 0;
 }
+
+#btn-copy {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--muted);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+#btn-copy:hover { color: var(--yellow); border-color: var(--yellow); }
+#btn-copy.copied { color: var(--green); border-color: var(--green); }
