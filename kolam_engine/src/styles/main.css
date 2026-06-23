@@ -26,7 +26,7 @@ body {
   display: flex;
   height: 100vh;
   gap: 8px;
-  padding: 8px 8px 20px 8px;
+  padding: 44px 8px 20px 8px;
   overflow: hidden;
 }
 

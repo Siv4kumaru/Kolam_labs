@@ -9,9 +9,24 @@ import { theme } from './styles/theme'
 
 const CHALLENGES: { label: string; seq: [number,number][][] }[] = [
   { label: 'figure-8', seq: [[[3,2],[4,1],[3,0],[2,1],[3,2],[4,3],[3,4],[2,3],[3,2]]] },
-  { label: 'big-8',    seq: [[[3,2],[4,3],[5,2],[4,1],[3,2],[2,3],[1,2],[2,1],[3,2]]] },
+  {
+    label: 'diagonal-8',
+    seq: [
+      [[3,4],[4,5],[3,6],[2,5],[3,4],[4,3],[3,2],[2,3],[3,4]],
+      [[3,4],[4,5],[5,4],[4,3],[3,4],[2,5],[1,4],[2,3],[3,4]],
+    ],
+  },
+  {
+    label: 'star',
+    seq: [
+      [[2,2],[2,1],[1,0],[0,0],[0,1],[1,2],[2,2]],
+      [[2,2],[1,2],[0,3],[0,4],[1,4],[2,3],[2,2]],
+      [[2,2],[2,1],[3,0],[4,0],[4,1],[3,2],[2,2]],
+      [[2,2],[3,2],[4,3],[4,4],[3,4],[2,3],[2,2]],
+    ],
+  },
 ]
-const currentIdx = 0
+let currentIdx = 0
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div class="challenge-layout">
@@ -22,8 +37,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </div>
       <div class="middle">
         <div class="status idle" id="status">Draw it</div>
+        <div class="challenge-num" id="challenge-num">1 / ${CHALLENGES.length}</div>
+        <button id="btn-next">Next →</button>
         <button id="btn-undo">Clear</button>
-        <div class="nav"><a href="/">← back</a></div>
       </div>
       <div class="panel">
         <div class="panel-label">Your Drawing</div>
@@ -57,7 +73,7 @@ const cfg: GridConfig = { rows: 3, cols: 3, spacing: 40 }
 function sizeCanvas(canvas: HTMLCanvasElement) {
   const dpr = window.devicePixelRatio || 1
   const w = canvas.offsetWidth  || canvas.parentElement!.clientWidth
-  const h = canvas.offsetHeight || canvas.parentElement!.clientHeight - 28
+  const h = canvas.offsetHeight || canvas.parentElement!.clientHeight - 26
   canvas.width = w * dpr;  canvas.height = h * dpr
   canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
 }
@@ -243,3 +259,10 @@ const ro = new ResizeObserver(() => {
 ro.observe(document.querySelector('.challenge-layout')!)
 
 document.getElementById('btn-undo')!.addEventListener('click', () => { resetDraw(cfg); validate([]) })
+document.getElementById('btn-next')!.addEventListener('click', () => {
+  currentIdx = (currentIdx + 1) % CHALLENGES.length
+  document.getElementById('challenge-num')!.textContent = `${currentIdx + 1} / ${CHALLENGES.length}`
+  resetDraw(cfg)
+  renderTarget()
+  validate([])
+})

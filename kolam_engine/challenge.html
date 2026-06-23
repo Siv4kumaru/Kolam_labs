@@ -5,8 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kolam Challenge</title>
     <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+    <style>
+      .chalk-nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 36px;
+        display: flex;
+        align-items: flex-end;
+        padding: 0 16px;
+        gap: 4px;
+        z-index: 100;
+        pointer-events: none;
+      }
+      .chalk-nav a {
+        pointer-events: all;
+        font-family: 'Schoolbell', cursive;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        padding: 4px 18px 6px;
+        border-radius: 6px 6px 0 0;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-bottom: none;
+        color: #9CA3AF;
+        background: rgba(11,31,27,0.6);
+        transition: color 0.15s, background 0.15s;
+      }
+      .chalk-nav a.active {
+        color: #F9FAFB;
+        background: #17332D;
+        border-color: rgba(255,255,255,0.18);
+      }
+      .chalk-nav a:hover:not(.active) {
+        color: #FACC15;
+        background: rgba(23,51,45,0.8);
+      }
+    </style>
   </head>
   <body>
+    <nav class="chalk-nav">
+      <a href="/">encoder</a>
+      <a href="/challenge.html" class="active">challenge</a>
+    </nav>
     <div id="app"></div>
     <script type="module" src="/src/challenge.ts"></script>
   </body>

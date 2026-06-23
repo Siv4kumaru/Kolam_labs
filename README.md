@@ -4,34 +4,37 @@
 
 ## What is a Kolam?
 
-A kolam is a closed loop drawn around a grid of anchor dots on a `(2m+1) × (2n+1)` lattice. Each curve segment is a quadratic Bézier spline — smooth, continuous, no sharp corners. The pattern can be fully described as an ordered sequence of lattice points.
+A kolam is a closed loop drawn around a grid of anchor dots on a `(2m+1) × (2n+1)` lattice. Each curve segment is a quadratic Bézier spline — smooth, continuous, no sharp corners. The pattern can be fully described as an ordered sequence of lattice point coordinates.
 
 ## The Pipeline
 
 ```
-Canvas Encoder  →  Sequence Representation  →  Training Data  →  Image-to-Seq Model
+Canvas Encoder  →  Sequence  →  Isomorphism Validator  →  Training Data  →  Image-to-Seq Model
 ```
-
-1. **Encode** — draw kolam patterns on the canvas, output a lattice point sequence
-2. **Validate** — isomorphism checker ensures structurally equivalent patterns share the same canonical sequence
-3. **Generate** — L-system inspired generator produces large-scale synthetic training data
-4. **Train** — fine-tune a vision model to map kolam images → sequences
-5. **Deploy** — inference API: given a kolam image, return its sequence
 
 ## Project Structure
 
 ```
 kolam_Labs/
-├── kolam_engine/       # Interactive encoder/decoder canvas (TypeScript + Paper.js)
-├── kolam_engine_v0/    # Earlier prototype
-├── docs/               # Formal spec, grammar notes, todo
-│   ├── foundation.md   # Lattice, anchor dot, and Bézier spline definition
+├── kolam_engine/           # Interactive encoder + challenge app (TypeScript + Paper.js)
+│   ├── src/
+│   │   ├── main.ts          # Encoder page
+│   │   ├── challenge.ts     # Challenge page
+│   │   └── modules/
+│   │       ├── canvas.ts        # Grid math, rendering, layout
+│   │       ├── draw.ts          # Paper.js drawing tool with snapping
+│   │       ├── decoder.ts       # Animated chalk trace + sequence highlighting
+│   │       ├── isomorphism.ts   # WL graph certificate for pattern matching
+│   │       ├── seq-parser.ts    # Parse [li,lj] sequence text
+│   │       └── renderer.ts      # Chalk brush renderer
+├── docs/
+│   ├── foundation.md            # Lattice spec, spline definition, isomorphism theory
 │   ├── graph_theory_for_kolam_grammar.md
 │   └── dot_port_grammar_summary.md
-└── ref_papers/         # Local reference PDFs (not tracked)
+└── ref_papers/              # Local reference PDFs (not tracked)
 ```
 
-## Running the Canvas Engine
+## Running Locally
 
 ```bash
 cd kolam_engine
@@ -39,22 +42,43 @@ npm install
 npm run dev
 ```
 
+## Pages
+
+**Encoder** (`/`) — Draw kolam patterns on the left canvas. The sequence of lattice coordinates appears in the middle panel live as you draw. The right canvas decodes and animates the path in blue chalk. Sequence is editable — paste or type `[li,lj]` coordinates directly.
+
+**Challenge** (`/challenge.html`) — A target kolam is shown on the left. Draw it on the right. The bottom row shows both graph signatures (WL certificate visualized as a node graph) updating live. Status shows ✓ Correct / ✗ Not yet in real time.
+
+## Sequence Format
+
+```
+[1,1] → [1,2] → [2,2] → [2,1] → [1,1]
+---
+[3,1] → [3,2] → [4,2]
+```
+
+Each `[li,lj]` is a lattice point coordinate. `---` separates strokes. For model training, tokenized as `row * (2n+1) + col`.
+
+## Isomorphism
+
+Two sequences are structurally isomorphic if their **Weisfeiler-Leman graph certificates** match — position, direction, and stroke order invariant. See `docs/foundation.md` for full theory.
+
 ## Roadmap
 
-**Phase 1 — Canvas Encoder/Decoder**
-- [x] Smooth Bézier spline rendering
-- [ ] Motif construction + ownership constraints
-- [ ] Sequential canvas decoder
+**Phase 1 — Canvas Engine** ✅
+- [x] Smooth Bézier spline rendering with chalk effect
+- [x] Live sequence output and animated decoder
+- [x] Editable sequence textarea with real-time rendering
+- [x] WL isomorphism validator
+- [x] Challenge mode with graph signature visualization
 
 **Phase 2 — Isomorphic Validator**
-- [ ] Motif → hypergraph conversion
-- [ ] Hypergraph isomorphism checker
+- [ ] Full motif → hypergraph conversion
+- [ ] Canonical sequence normalization
 
 **Phase 3 — Training Data Generation**
 - [ ] L-system inspired synthetic generator
 - [ ] Data augmentation pipeline
-- [ ] Manual data collection via canvas tool
 
 **Phase 4 — Image-to-Sequence Model**
 - [ ] Fine-tune vision-language model (image → lattice sequence)
-- [ ] Evaluation + model deployment
+- [ ] Model deployment
