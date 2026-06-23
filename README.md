@@ -2,6 +2,8 @@
 
 **Goal:** Build a dataset of kolam patterns and train an image-to-sequence model that can read a kolam image and output its structural encoding.
 
+🎨 **[Try the live Kolam Engine →](https://techonebytwo.com/siv4kumaru/kolam_labs/challenge.html)**
+
 ## What is a Kolam?
 
 A kolam is a closed loop drawn around a grid of anchor dots on a `(2m+1) × (2n+1)` lattice. Each curve segment is a quadratic Bézier spline — smooth, continuous, no sharp corners. The pattern can be fully described as an ordered sequence of lattice point coordinates.

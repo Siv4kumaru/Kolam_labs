@@ -3,18 +3,18 @@ Each seperate module to be created and used:
 Phase 1
 [ ] Canvas Encoder
     [*] smooth bezier dot connecting
-    [ ] proper motif construction and OWNERSHIP constraint definition
-    [ ] bezier graph finetuning
+    [*] proper motif construction and OWNERSHIP constraint definition
+    [*] bezier graph finetuning
 
-[ ] Canvas Decoder
-    [ ] Proper Tracing
-    [ ] Sequntial decoding
+[*] Canvas Decoder
+    [*] Proper Tracing
+    [*] Sequntial decoding
 
 Phase 2
-[ ] Isomorphic Validator
-    [ ] motif to hypergraph conversion
-    [ ] Hypergraph incedence isomorphism checker
-    [ ] Isomorphic checker testing 
+[*] Isomorphic Validator
+    [*] motif to hypergraph conversion
+    [*] Hypergraph incedence isomorphism checker
+    [*] Isomorphic checker testing 
 
 -- Post --
 
