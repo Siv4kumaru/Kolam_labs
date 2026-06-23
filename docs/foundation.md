@@ -23,4 +23,4 @@ When one spline meets another at an anchor dot, they form a joint. Because the c
 
 For clarity during drawing, the joints and control points should be displayed on the canvas. Joints appear as small marks at every anchor dot where two curves meet, and control points appear as faint guides at the lattice points between anchors. Showing these elements helps verify that the curves connect cleanly and that the control points sit at the correct midpoints. Once the pattern is confirmed, the guides may be hidden to reveal only the finished kolam.
 
-#
+niw

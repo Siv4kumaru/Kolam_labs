@@ -41,6 +41,7 @@ function toCoords(scope: any, stroke: [number,number][], cfg: GridConfig, origin
 export function decodeLive(
   scope: any, canvas: HTMLCanvasElement, cfg: GridConfig,
   seq: [number, number][][], seqEl: HTMLTextAreaElement,
+  updateSeq = true,
 ) {
   if (_animId !== null) { cancelAnimationFrame(_animId); _animId = null }
   clearLayer(scope)
@@ -60,13 +61,15 @@ export function decodeLive(
   }
 
   // Update textarea — strokes separated by ---
-  const lines = seq.map(stroke => stroke.map(([li, lj]) => `[${li},${lj}]`).join(' → '))
-  seqEl.value = lines.join('\n---\n')
-  const lastLine = lines[lines.length - 1]
-  const lastToken = lastLine.split(' → ').pop()!
-  const idx = seqEl.value.lastIndexOf(lastToken)
-  seqEl.focus()
-  seqEl.setSelectionRange(idx, idx + lastToken.length)
+  if (updateSeq) {
+    const lines = seq.map(stroke => stroke.map(([li, lj]) => `[${li},${lj}]`).join(' → '))
+    seqEl.value = lines.join('\n---\n')
+    const lastLine = lines[lines.length - 1]
+    const lastToken = lastLine.split(' → ').pop()!
+    const idx = seqEl.value.lastIndexOf(lastToken)
+    seqEl.focus()
+    seqEl.setSelectionRange(idx, idx + lastToken.length)
+  }
 }
 
 /** Looping animation after stroke committed */

@@ -5,8 +5,6 @@ import { buildLattice, gridOrigin, latticeToCanvas, getSpacing } from './canvas'
 import { chalkStroke } from './renderer'
 import { theme } from '../styles/theme'
 
-const SNAP_RADIUS = 30
-
 let _cfg: GridConfig
 let _scope: any
 let _canvas: HTMLCanvasElement
@@ -27,8 +25,38 @@ export function initDraw(
   _scope = scope; _canvas = canvas; _cfg = cfg
   _onLive = onLive ?? null
   _onCommit = onCommit ?? null
-  canvas.addEventListener('click', onClick)
-  canvas.addEventListener('mousemove', onMove)
+
+  scope.activate()
+  const tool = new scope.Tool()
+
+  tool.onMouseMove = (e: any) => {
+    const snap = nearest(e.point)
+    if (drawing && snap) {
+      const last = currentPts[currentPts.length - 1]
+      if (!last || last.li !== snap.li || last.lj !== snap.lj) {
+        currentPts = [...currentPts, snap]
+        _onLive?.([...finished, currentPts].map(pts => pts.map(p => [p.li, p.lj])))
+        renderAll()
+        return
+      }
+    }
+    renderAll(snap ?? undefined)
+  }
+
+  tool.onMouseDown = (e: any) => {
+    const snap = nearest(e.point)
+    if (!snap) return
+    if (!drawing) {
+      drawing = true
+      currentPts = [snap]
+    } else {
+      drawing = false
+      if (currentPts.length >= 2) finished = [...finished, currentPts]
+      currentPts = []
+      _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
+    }
+    renderAll()
+  }
 }
 
 export function resetDraw(cfg: GridConfig) {
@@ -47,35 +75,6 @@ export function renderSeqOnEnc(seq: [number, number][][]) {
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────
-
-function onClick(e: MouseEvent) {
-  const snap = nearest(evtPt(e))
-  if (!snap) return
-  if (!drawing) {
-    drawing = true
-    currentPts = [snap]
-  } else {
-    drawing = false
-    if (currentPts.length >= 2) finished = [...finished, currentPts]
-    currentPts = []
-    _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
-  }
-  renderAll()
-}
-
-function onMove(e: MouseEvent) {
-  const snap = nearest(evtPt(e))
-  if (drawing && snap) {
-    const last = currentPts[currentPts.length - 1]
-    if (!last || last.li !== snap.li || last.lj !== snap.lj) {
-      currentPts = [...currentPts, snap]
-      _onLive?.([...finished, currentPts].map(pts => pts.map(p => [p.li, p.lj])))
-      renderAll()
-      return
-    }
-  }
-  renderAll(snap ?? undefined)
-}
 
 // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -133,20 +132,16 @@ function mid(a: any, b: any) {
   return new _scope.Point((a.x + b.x) / 2, (a.y + b.y) / 2)
 }
 
-function evtPt(e: MouseEvent): { x: number; y: number } {
-  const rect = _canvas.getBoundingClientRect()
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top }
-}
-
-function nearest(pt: { x: number; y: number }): LatticePoint | null {
+function nearest(pt: any): LatticePoint | null {
   const spacing = getSpacing(_cfg, _canvas.clientWidth, _canvas.clientHeight)
   const rcfg = { ..._cfg, spacing }
   const origin = gridOrigin(rcfg, _canvas.clientWidth, _canvas.clientHeight)
-  let best: LatticePoint | null = null, bestD = SNAP_RADIUS
+  const cutoff = spacing / 2   // same as demo: LATTICE_DISTANCE / 2
+  let best: LatticePoint | null = null, bestD = cutoff
   for (const p of buildLattice(_cfg)) {
+    if (isAnchor(p.li, p.lj)) continue
     const { x, y } = latticeToCanvas(p.li, p.lj, rcfg, origin)
-    let d = Math.hypot(pt.x - x, pt.y - y)
-    if (!isAnchor(p.li, p.lj)) d *= 1.4
+    const d = Math.hypot(pt.x - x, pt.y - y)
     if (d < bestD) { bestD = d; best = p }
   }
   return best
