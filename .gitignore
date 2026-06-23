@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+venv/
+.venv/
+env/
+
+# ML artifacts
+models/
+*.h5
+*.keras
+*.pkl
+*.joblib
+*.pb
+data/
+*.data
+.ipynb_checkpoints/
+
+# Logs & cache
+*.log
+logs/
+.cache/
+tmp/
+temp/
+
+# DB
+*.db
+
+# Reference papers (local only)
+ref_papers/
