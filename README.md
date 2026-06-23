@@ -68,12 +68,12 @@ Two sequences are structurally isomorphic if their **Weisfeiler-Leman graph cert
 - [x] Smooth Bézier spline rendering with chalk effect
 - [x] Live sequence output and animated decoder
 - [x] Editable sequence textarea with real-time rendering
-- [x] WL isomorphism validator
-- [x] Challenge mode with graph signature visualization
 
-**Phase 2 — Isomorphic Validator**
-- [ ] Full motif → hypergraph conversion
-- [ ] Canonical sequence normalization
+**Phase 2 — Isomorphic Validator** ✅
+- [x] WL graph certificate (position, direction, stroke-order invariant)
+- [x] Canonical sequence normalization via WL certificate
+- [x] Challenge mode with live graph signature visualization
+- [x] Multi-stroke isomorphism validation
 
 **Phase 3 — Training Data Generation**
 - [ ] L-system inspired synthetic generator
