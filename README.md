@@ -75,10 +75,15 @@ Two sequences are structurally isomorphic if their **Weisfeiler-Leman graph cert
 - [x] Challenge mode with live graph signature visualization
 - [x] Multi-stroke isomorphism validation
 
-**Phase 3 — Training Data Generation**
+**Phase 3 — vLLM Baseline & Kolam Harness**
+- [ ] Prompt engineering: image + grid spec → sequence (zero-shot / few-shot)
+- [ ] Kolam evaluation harness: run model output through WL isomorphism checker
+- [ ] Baseline accuracy benchmarks across challenge levels
+
+**Phase 4 — Training Data Generation**
 - [ ] L-system inspired synthetic generator
 - [ ] Data augmentation pipeline
 
-**Phase 4 — Image-to-Sequence Model**
+**Phase 5 — Image-to-Sequence Model**
 - [ ] Fine-tune vision-language model (image → lattice sequence)
 - [ ] Model deployment
