@@ -87,6 +87,8 @@ seqEl.addEventListener('blur', () => {
   if (seq.length > 0) decodeLoop(decScope, decCanvas, cfg, seq, seqEl)
 })
 
+document.getElementById('btn-undo')!.addEventListener('click', () => { stopDecode(); resetDraw(cfg); seqEl.value = '' })
+
 document.getElementById('btn-copy')!.addEventListener('click', () => {
   navigator.clipboard.writeText(seqEl.value)
   const btn = document.getElementById('btn-copy')!

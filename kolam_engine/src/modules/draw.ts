@@ -67,6 +67,13 @@ export function resetDraw(cfg: GridConfig) {
   _onCommit?.([])
 }
 
+export function undoDraw() {
+  if (drawing) { drawing = false; currentPts = [] }
+  else finished = finished.slice(0, -1)
+  renderAll()
+  _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
+}
+
 /** Render externally-provided strokes onto the enc canvas (from seq textarea edit) */
 export function renderSeqOnEnc(seq: [number, number][][]) {
   finished = seq.map(stroke => stroke.map(([li, lj]) => ({ li, lj })))

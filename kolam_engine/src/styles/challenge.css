@@ -1,0 +1,123 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0B1F1B;
+  color: #E5E7EB;
+  font-family: monospace;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.challenge-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  gap: 10px;
+  padding: 10px;
+}
+
+.top-row {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
+
+.bottom-row {
+  display: flex;
+  gap: 12px;
+  height: 220px;
+  flex-shrink: 0;
+}
+
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.graph-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.panel-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #9CA3AF;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.panel canvas {
+  flex: 1;
+  min-height: 0;
+  background-color: #274C43;
+  background-image: radial-gradient(ellipse at 55% 45%, #2e6b52 0%, #274C43 45%, #1a3530 100%);
+  background-size: cover;
+  display: block;
+  box-shadow:
+    0 0 0 3px #5a3a1a,
+    0 0 0 9px #7a4e28,
+    0 0 0 11px #3d2510,
+    0 6px 24px rgba(0,0,0,0.6);
+}
+
+.graph-panel canvas {
+  flex: 1;
+  min-height: 0;
+  display: block;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.status {
+  text-align: center;
+  font-size: 1rem;
+  font-family: 'Schoolbell', cursive;
+  letter-spacing: 0.1em;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: color 0.3s, background 0.3s;
+}
+.status.idle { color: #9CA3AF; }
+.status.pass { color: #6EE7B7; background: rgba(110,231,183,0.08); }
+.status.fail { color: #FB7185; background: rgba(251,113,133,0.08); }
+
+.middle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.nav a {
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+}
+.nav a:hover { color: #FACC15; }
+
+#btn-undo {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #9CA3AF;
+  border-radius: 3px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  cursor: pointer;
+  width: 100%;
+}
+#btn-undo:hover { color: #FACC15; border-color: #FACC15; }

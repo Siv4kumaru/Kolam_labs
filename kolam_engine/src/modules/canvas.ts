@@ -139,6 +139,7 @@ export const HTML = `
         <div class="seq-panel">
           <div class="seq-top">
             <div class="seq-label">Sequence</div>
+            <button id="btn-undo">Clear</button>
             <button id="btn-copy">Copy</button>
           </div>
           <div class="grid-input">
