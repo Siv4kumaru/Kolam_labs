@@ -11,14 +11,22 @@ let _cfg: GridConfig
 let _scope: any
 let _canvas: HTMLCanvasElement
 
-let currentPts: LatticePoint[] = []   // in-progress stroke
-let finished: LatticePoint[][] = []   // committed splines
+let currentPts: LatticePoint[] = []
+let finished: LatticePoint[][] = []
 let drawing = false
+let _onLive: ((seq: [number, number][][]) => void) | null = null
+let _onCommit: ((seq: [number, number][][]) => void) | null = null
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
-export function initDraw(scope: any, canvas: HTMLCanvasElement, cfg: GridConfig) {
+export function initDraw(
+  scope: any, canvas: HTMLCanvasElement, cfg: GridConfig,
+  onLive?: (seq: [number, number][][]) => void,
+  onCommit?: (seq: [number, number][][]) => void,
+) {
   _scope = scope; _canvas = canvas; _cfg = cfg
+  _onLive = onLive ?? null
+  _onCommit = onCommit ?? null
   canvas.addEventListener('click', onClick)
   canvas.addEventListener('mousemove', onMove)
 }
@@ -27,6 +35,8 @@ export function resetDraw(cfg: GridConfig) {
   _cfg = cfg
   currentPts = []; finished = []; drawing = false
   renderAll()
+  _onLive?.([])
+  _onCommit?.([])
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────
@@ -41,6 +51,7 @@ function onClick(e: MouseEvent) {
     drawing = false
     if (currentPts.length >= 2) finished = [...finished, currentPts]
     currentPts = []
+    _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
   }
   renderAll()
 }
@@ -51,6 +62,7 @@ function onMove(e: MouseEvent) {
     const last = currentPts[currentPts.length - 1]
     if (!last || last.li !== snap.li || last.lj !== snap.lj) {
       currentPts = [...currentPts, snap]
+      _onLive?.([...finished, currentPts].map(pts => pts.map(p => [p.li, p.lj])))
       renderAll()
       return
     }
@@ -69,13 +81,9 @@ function renderAll(hover?: LatticePoint) {
 
   const origin = gridOrigin(_cfg, _canvas.clientWidth, _canvas.clientHeight)
 
-  // Draw all committed splines
   for (const pts of finished) renderSpline(pts, origin)
-
-  // Draw current in-progress stroke
   if (currentPts.length >= 2) renderSpline(currentPts, origin)
 
-  // Hover highlight
   if (hover && !drawing) {
     const hc = new _scope.Path.Circle(lp(hover, origin), 8)
     hc.fillColor = new _scope.Color(0.4, 1, 0.4, 0.45)
@@ -127,8 +135,6 @@ function nearest(pt: { x: number; y: number }): LatticePoint | null {
   for (const p of buildLattice(_cfg)) {
     const { x, y } = latticeToCanvas(p.li, p.lj, _cfg, origin)
     let d = Math.hypot(pt.x - x, pt.y - y)
-    // Shrink effective snap radius for non-anchor (midpoint) lattice points
-    // so anchors win when equidistant during diagonal movement
     if (!isAnchor(p.li, p.lj)) d *= 1.4
     if (d < bestD) { bestD = d; best = p }
   }

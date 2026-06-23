@@ -108,31 +108,39 @@ export function drawKolamDemo(scope: any, canvas: HTMLCanvasElement, cfg: GridCo
 
 // ── Layout lifecycle ───────────────────────────────────────────────────────
 
+const ARROW_SVG = `
+  <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 24 Q12 22 24 24" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <path d="M24 24 L17 17" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <path d="M24 24 L17 31" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+  </svg>`
+
 export const HTML = `
   <div class="layout">
     <div class="boards" id="boards">
       <div class="panels">
         <canvas id="enc-canvas"></canvas>
-        <div class="panel-divider"></div>
+        <div class="flow-arrow">${ARROW_SVG}</div>
+        <div class="seq-panel">
+          <div class="grid-input">
+            <label>N <input id="inp-rows" type="number" value="3" min="1" max="12" /></label>
+            <label>M <input id="inp-cols" type="number" value="3" min="1" max="12" /></label>
+          </div>
+          <div class="seq-label">Sequence</div>
+          <textarea id="seq" spellcheck="false" readonly></textarea>
+        </div>
+        <div class="flow-arrow">${ARROW_SVG}</div>
         <canvas id="dec-canvas"></canvas>
       </div>
-    </div>
-    <div class="sidebar">
-      <div class="grid-input">
-        <label>N <input id="inp-rows" type="number" value="3" min="1" max="12" /></label>
-        <label>M <input id="inp-cols" type="number" value="3" min="1" max="12" /></label>
-      </div>
-      <div class="seq-label">Sequence</div>
-      <textarea id="seq" spellcheck="false" readonly></textarea>
     </div>
   </div>
 `
 
 export function sizeCanvas(canvas: HTMLCanvasElement) {
-  const panels = canvas.parentElement!
   const dpr = window.devicePixelRatio || 1
-  const w = Math.floor((panels.clientWidth - 16) / 2)
-  const h = panels.clientHeight - 20
+  // Let flex:1 determine width — read what browser computed
+  const w = canvas.offsetWidth || canvas.parentElement!.clientWidth / 2
+  const h = (canvas.parentElement!.clientHeight) - 20
   canvas.width = w * dpr
   canvas.height = h * dpr
   canvas.style.width = w + 'px'
