@@ -44,9 +44,73 @@
         color: #FACC15;
         background: rgba(23,51,45,0.8);
       }
+      @media (max-width: 768px) {
+        .chalk-nav {
+          height: 42px;
+          padding: 0 8px;
+          gap: 2px;
+        }
+        .chalk-nav a {
+          font-size: 0.85rem;
+          padding: 6px 14px 8px;
+          flex: 1;
+          text-align: center;
+        }
+      }
+
+      /* Mobile overlay */
+      .mobile-block {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #0B1F1B;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 24px 32px;
+        text-align: center;
+        font-family: 'Schoolbell', cursive;
+        gap: 0;
+      }
+      .mobile-block canvas#kolam-logo {
+        width: 220px;
+        height: 220px;
+        margin-bottom: 12px;
+      }
+      .mobile-block h1 {
+        color: #F9FAFB;
+        font-size: 1.6rem;
+        font-weight: normal;
+        margin: 0 0 12px;
+        letter-spacing: 0.04em;
+      }
+      .mobile-block p {
+        color: #9CA3AF;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        margin: 0;
+        max-width: 300px;
+      }
+      .mobile-block p span {
+        color: #FACC15;
+      }
+      @media (max-width: 768px) {
+        .mobile-block {
+          display: flex;
+        }
+      }
     </style>
   </head>
   <body>
+    <!-- Mobile block -->
+    <div class="mobile-block">
+      <canvas id="kolam-logo" width="440" height="440"></canvas>
+      <h1>Kolam Engine</h1>
+      <p>Mobile version is still in development.<br/>Kindly use your <span>desktop</span> for the full experience.</p>
+    </div>
+    <script src="/kolam-logo.js"></script>
+
     <nav class="chalk-nav">
       <a href="./index.html">encoder</a>
       <a href="./challenge.html" class="active">challenge</a>

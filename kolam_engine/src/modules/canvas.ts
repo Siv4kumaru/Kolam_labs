@@ -34,11 +34,17 @@ export function latticeToCanvas(
   return { x: origin.x + lj * cfg.spacing, y: origin.y + li * cfg.spacing }
 }
 
+// Vertical space reserved at the top of every board for the chalk-dust label
+// (see drawChalkLabel). Baked into gridOrigin/getSpacing so the lattice never
+// renders into the label band, on any canvas size (mobile included).
+const LABEL_RESERVE = 44
+
 export function gridOrigin(cfg: GridConfig, canvasW: number, canvasH: number) {
   const { rows, cols } = latticeSize(cfg)
+  const usableH = Math.max(canvasH - LABEL_RESERVE, 1)
   return {
     x: (canvasW - (cols - 1) * cfg.spacing) / 2,
-    y: (canvasH - (rows - 1) * cfg.spacing) / 2,
+    y: LABEL_RESERVE + (usableH - (rows - 1) * cfg.spacing) / 2,
   }
 }
 
@@ -46,9 +52,10 @@ export function gridOrigin(cfg: GridConfig, canvasW: number, canvasH: number) {
 
 export function getSpacing(cfg: GridConfig, canvasW: number, canvasH: number): number {
   const { rows, cols } = latticeSize(cfg)
+  const usableH = Math.max(canvasH - LABEL_RESERVE, 1)
   return Math.floor(Math.min(
     (canvasW * 0.8) / (cols - 1),
-    (canvasH * 0.8) / (rows - 1),
+    (usableH * 0.8) / (rows - 1),
   ))
 }
 
@@ -60,11 +67,8 @@ export function drawGrid(scope: any, canvas: HTMLCanvasElement, cfg: GridConfig,
   drawBoardTexture(scope, width, height)
 
   // Auto-fit spacing so grid fills ~80% of the smaller canvas dimension
-  const { rows, cols } = latticeSize(cfg)
-  const spacing = Math.floor(Math.min(
-    (canvas.clientWidth * 0.8) / (cols - 1),
-    (canvas.clientHeight * 0.8) / (rows - 1),
-  ))
+  // (getSpacing already reserves top space for the chalk label)
+  const spacing = getSpacing(cfg, canvas.clientWidth, canvas.clientHeight)
 
   const origin = gridOrigin({ ...cfg, spacing }, canvas.clientWidth, canvas.clientHeight)
   for (const { li, lj } of buildLattice(cfg)) {
@@ -156,12 +160,15 @@ export const HTML = `
 `
 
 export function sizeCanvas(canvas: HTMLCanvasElement) {
-  const dpr = window.devicePixelRatio || 1
-  // Let flex:1 determine width — read what browser computed
-  const w = canvas.offsetWidth || canvas.parentElement!.clientWidth / 2
-  const h = (canvas.parentElement!.clientHeight) - 20
-  canvas.width = w * dpr
-  canvas.height = h * dpr
+  // Only set CSS (layout) size here. Do NOT touch canvas.width/height —
+  // Paper.js owns the backing-store resolution via scope.view.viewSize
+  // (see main.ts/challenge.ts). Setting both independently causes DPR
+  // to be applied twice, shrinking the drawing into a corner.
+  canvas.style.width = ''
+  canvas.style.height = ''
+  const rect = canvas.getBoundingClientRect()
+  const w = Math.round(rect.width) || 300
+  const h = Math.round(rect.height) || 200
   canvas.style.width = w + 'px'
   canvas.style.height = h + 'px'
 }

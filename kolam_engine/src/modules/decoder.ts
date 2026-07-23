@@ -7,6 +7,12 @@ import { theme } from '../styles/theme'
 
 let _animId: number | null = null
 
+// Touch/coarse-pointer devices (phones, tablets) auto-scroll the page when
+// textarea.setSelectionRange() is called repeatedly, even without focus.
+// Skip the text-highlight side effect there; the canvas animation still runs.
+const _isTouchDevice = typeof window !== 'undefined' &&
+  window.matchMedia?.('(pointer: coarse)').matches
+
 function buildSplinePts(scope: any, coords: any[], closed = false): any[] {
   if (coords.length < 2) return []
   const path = new scope.Path()
@@ -28,6 +34,20 @@ function clearLayer(scope: any) {
   scope.activate()
   const l = scope.project.layers.find((x: any) => x.name === 'decode-anim')
   if (l) l.remove()
+}
+
+/** Scroll a textarea just enough to keep the given char offset's line visible,
+ *  without touching focus (avoids mobile keyboard flicker / auto-scroll). */
+function scrollTokenIntoView(seqEl: HTMLTextAreaElement, charOffset: number) {
+  const lineHeight = parseFloat(getComputedStyle(seqEl).lineHeight) || 16
+  const lineIdx = seqEl.value.slice(0, charOffset).split('\n').length - 1
+  const lineTop = lineIdx * lineHeight
+  const lineBottom = lineTop + lineHeight
+  if (lineTop < seqEl.scrollTop) {
+    seqEl.scrollTop = lineTop
+  } else if (lineBottom > seqEl.scrollTop + seqEl.clientHeight) {
+    seqEl.scrollTop = lineBottom - seqEl.clientHeight
+  }
 }
 
 function toCoords(scope: any, stroke: [number,number][], cfg: GridConfig, origin: any) {
@@ -67,8 +87,10 @@ export function decodeLive(
     const lastLine = lines[lines.length - 1]
     const lastToken = lastLine.split(' → ').pop()!
     const idx = seqEl.value.lastIndexOf(lastToken)
-    seqEl.focus()
-    seqEl.setSelectionRange(idx, idx + lastToken.length)
+    if (!_isTouchDevice) {
+      seqEl.focus()
+      seqEl.setSelectionRange(idx, idx + lastToken.length)
+    }
   }
 }
 
@@ -88,14 +110,19 @@ export function decodeLoop(
   // Char offset for every token across all strokes
   const allOffsets: { start: number; end: number }[] = []
   let pos = 0
-  for (const line of strokeLines) {
+  for (let li = 0; li < strokeLines.length; li++) {
+    const line = strokeLines[li]
     const tokens = line.split(' → ')
-    for (const t of tokens) {
+    for (let ti = 0; ti < tokens.length; ti++) {
+      const t = tokens[ti]
       const idx = joined.indexOf(t, pos)
       allOffsets.push({ start: idx, end: idx + t.length })
       pos = idx + t.length
+      // skip the ' → ' separator between tokens
+      if (ti < tokens.length - 1) pos += 3 // ' → '.length
     }
-    pos++ // skip \n after line
+    // skip the '\n---\n' separator between strokes
+    if (li < strokeLines.length - 1) pos += 5 // '\n---\n'.length
   }
 
   const spacing = getSpacing(cfg, canvas.clientWidth, canvas.clientHeight)
@@ -152,10 +179,10 @@ export function decodeLoop(
     const baseTokenIdx = seq.slice(0, si).reduce((s, st) => s + st.length, 0)
     const localTokIdx = sd.tokenPtIdx.findLastIndex((pi: number) => pi <= head)
     const absTokIdx = baseTokenIdx + (localTokIdx >= 0 ? localTokIdx : 0)
-    if (allOffsets[absTokIdx] && document.activeElement !== seqEl) {
+    if (allOffsets[absTokIdx] && !_isTouchDevice) {
       const { start, end } = allOffsets[absTokIdx]
-      seqEl.focus()
       seqEl.setSelectionRange(start, end)
+      scrollTokenIntoView(seqEl, start)
     }
 
     head++

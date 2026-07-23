@@ -71,17 +71,23 @@ const cfg: GridConfig = { rows: 3, cols: 3, spacing: 40 }
 // ── Canvas sizing ──────────────────────────────────────────────────────────
 
 function sizeCanvas(canvas: HTMLCanvasElement) {
-  const dpr = window.devicePixelRatio || 1
-  const w = canvas.offsetWidth  || canvas.parentElement!.clientWidth
-  const h = canvas.offsetHeight || canvas.parentElement!.clientHeight - 26
-  canvas.width = w * dpr;  canvas.height = h * dpr
+  // Only set CSS (layout) size. Paper.js owns canvas.width/height via
+  // scope.view.viewSize — setting both independently double-applies DPR.
+  canvas.style.width = ''
+  canvas.style.height = ''
+  const rect = canvas.getBoundingClientRect()
+  const w = Math.round(rect.width) || 300
+  const h = Math.round(rect.height) || 200
   canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
 }
 
 function sizeGraphCanvas(canvas: HTMLCanvasElement) {
   const dpr = window.devicePixelRatio || 1
-  const w = canvas.parentElement!.clientWidth
-  const h = canvas.parentElement!.clientHeight - 28
+  canvas.style.width = ''
+  canvas.style.height = ''
+  const rect = canvas.getBoundingClientRect()
+  const w = Math.round(rect.width) || 300
+  const h = Math.round(rect.height) || 140
   canvas.width = w * dpr; canvas.height = h * dpr
   canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
 }

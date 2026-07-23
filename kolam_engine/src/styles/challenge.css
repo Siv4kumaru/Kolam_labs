@@ -60,6 +60,7 @@ body {
 .panel canvas {
   flex: 1;
   min-height: 0;
+  touch-action: none;
   background-color: #274C43;
   background-image: radial-gradient(ellipse at 55% 45%, #2e6b52 0%, #274C43 45%, #1a3530 100%);
   background-size: cover;
@@ -142,4 +143,80 @@ body {
   font-size: 0.7rem;
   color: #6B7280;
   font-family: monospace;
+}
+
+/* ── Mobile responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .challenge-layout {
+    height: auto;
+    min-height: 100vh;
+    padding: 48px 6px 16px 6px;
+    gap: 12px;
+  }
+
+  .top-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .middle {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .middle .status {
+    width: 100%;
+    text-align: center;
+  }
+
+  .middle .challenge-num {
+    order: -1;
+  }
+
+  #btn-next, #btn-undo {
+    padding: 10px 18px;
+    font-size: 16px; /* prevents iOS zoom */
+    min-height: 44px;
+    width: auto;
+    flex: 1;
+    max-width: 140px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .panel canvas {
+    min-height: 200px;
+    height: 44vw;
+    max-height: 300px;
+    flex: none;
+  }
+
+  .bottom-row {
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+  }
+
+  .graph-panel {
+    min-height: 160px;
+  }
+
+  .graph-panel canvas {
+    min-height: 140px;
+  }
+
+  .panel-label {
+    font-size: 0.65rem;
+  }
 }

@@ -12,6 +12,7 @@ let _canvas: HTMLCanvasElement
 let currentPts: LatticePoint[] = []
 let finished: LatticePoint[][] = []
 let drawing = false
+let _draggedSinceDown = false
 let _onLive: ((seq: [number, number][][]) => void) | null = null
 let _onCommit: ((seq: [number, number][][]) => void) | null = null
 
@@ -35,6 +36,7 @@ export function initDraw(
       const last = currentPts[currentPts.length - 1]
       if (!last || last.li !== snap.li || last.lj !== snap.lj) {
         currentPts = [...currentPts, snap]
+        _draggedSinceDown = true
         _onLive?.([...finished, currentPts].map(pts => pts.map(p => [p.li, p.lj])))
         renderAll()
         return
@@ -46,9 +48,27 @@ export function initDraw(
   tool.onMouseDown = (e: any) => {
     const snap = nearest(e.point)
     if (!snap) return
+    const isTouch = typeof e.event?.type === 'string' && e.event.type.indexOf('touch') === 0
+
     if (!drawing) {
       drawing = true
       currentPts = [snap]
+      _draggedSinceDown = false
+    } else if (isTouch) {
+      // Touch has no hover-drag between discrete taps, so each tap on a new
+      // lattice point extends the stroke directly; tapping the same point
+      // again (as on desktop) commits it. Mouse behavior below is untouched.
+      const last = currentPts[currentPts.length - 1]
+      if (last.li !== snap.li || last.lj !== snap.lj) {
+        currentPts = [...currentPts, snap]
+        _onLive?.([...finished, currentPts].map(pts => pts.map(p => [p.li, p.lj])))
+        renderAll()
+        return
+      }
+      drawing = false
+      if (currentPts.length >= 2) finished = [...finished, currentPts]
+      currentPts = []
+      _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
     } else {
       drawing = false
       if (currentPts.length >= 2) finished = [...finished, currentPts]
@@ -57,18 +77,33 @@ export function initDraw(
     }
     renderAll()
   }
+
+  // Touch-only: if the stroke was built by dragging a finger across the
+  // lattice, lifting the finger finishes it immediately — no confirming tap
+  // needed. Tap-by-tap strokes (no drag) still wait for the finishing tap,
+  // so the two touch gestures don't fight each other. Desktop is untouched.
+  tool.onMouseUp = (e: any) => {
+    const isTouch = typeof e.event?.type === 'string' && e.event.type.indexOf('touch') === 0
+    if (!isTouch || !drawing || !_draggedSinceDown) return
+    drawing = false
+    if (currentPts.length >= 2) finished = [...finished, currentPts]
+    currentPts = []
+    _draggedSinceDown = false
+    _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
+    renderAll()
+  }
 }
 
 export function resetDraw(cfg: GridConfig) {
   _cfg = cfg
-  currentPts = []; finished = []; drawing = false
+  currentPts = []; finished = []; drawing = false; _draggedSinceDown = false
   renderAll()
   _onLive?.([])
   _onCommit?.([])
 }
 
 export function undoDraw() {
-  if (drawing) { drawing = false; currentPts = [] }
+  if (drawing) { drawing = false; currentPts = []; _draggedSinceDown = false }
   else finished = finished.slice(0, -1)
   renderAll()
   _onCommit?.(finished.map(pts => pts.map(p => [p.li, p.lj])))
